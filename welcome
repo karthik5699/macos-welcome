@@ -1,0 +1,71 @@
+#!/bin/bash
+
+STATIC=0
+if [ -z "$OPENAI_KEY" ]; then
+    OPENAI_KEY="YOUR API KEY" # Should store this as an env variable in your .bashrc
+fi
+
+if [[ $STATIC != 0 ]]; then
+    morning="Life loves me!
+    All is well in my world. Everything is working out for my highest good. Out of this situation only good will come. I am safe!
+    It’s only a thought, and a thought can be changed.
+    The point of power is always in the present moment.
+    Every thought we think is creating our future.
+    I am in the process of positive change.
+    I am comfortable looking in the mirror, saying, 'I love you, I really love you.'
+    It is safe to look within.
+    I forgive myself and set myself free.
+    As I say yes to life, life says yes to me.
+    I now go beyond other people’s fears and limitations.
+    I am Divinely guided and protected at all times.
+    I trust the process of life.
+    I am deeply fulfilled by all that I do.
+    We are all family, and the planet is our home.
+    As I forgive myself, it becomes easier to forgive others.
+    I am willing to let go.
+    Deep at the center of my being is an infinite well of love.
+    I prosper wherever I turn."
+
+    afternoon="I welcome miracles into my life.
+    Whatever I need to know is revealed to me at exactly the right time.
+    I am loved, and I am at peace.
+    My happy thoughts help create my healthy body.
+    Life supports me in every possible way.
+    My day begins and ends with gratitude.
+    I listen with love to my body’s messages.
+    The past is over.
+    Only good can come to me.
+    I am beautiful, and everybody loves me.
+    Everyone I encounter today has my best interests at heart.
+    I always work with and for wonderful people. I love my job.
+    Filling my mind with pleasant thoughts is the quickest road to health.
+    I am healthy, whole, and complete.
+    I devote a portion of my time to helping others. It is good for my own health.
+    I am greeted by love wherever I go.
+    Wellness is the natural state of my body. I am in perfect health.
+    I am pain free and totally in sync with life.
+    I am very thankful for all the love in my life. I find it everywhere."
+
+    currenttime=$(date +%H:%M)
+    if [[ "$currenttime" > "06:00" ]] && [[ "$currenttime" < "12:00" ]]; then
+        msg=$(echo "$morning" | shuf -n 1)
+    else
+        msg=$(echo "$afternoon" | shuf -n 1)
+    fi
+else
+    msg=$(curl https://api.openai.com/v1/completions \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${OPENAI_KEY}" \
+    -d '{
+        "model": "text-davinci-003",
+        "prompt": "System: Below is a list of positive affirmations.\nLife loves me!\nAll is well in my world.\nEverything is working out for my highest good.\nOut of this situation only good will come.\nI am safe!\nIt’s only a thought, and a thought can be changed.\nThe point of power is always in the present moment.\nEvery thought we think is creating our future.\nI am in the process of positive change.\nIt is safe to look within.\nI forgive myself and set myself free.\nAs I say yes to life, life says yes to me.\nI now go beyond other people’s fears and limitations.\nI am Divinely guided and protected at all times.\nI trust the process of life.\nI am deeply fulfilled by all that I do.\nAs I forgive myself, it becomes easier to forgive others.\nDeep at the center of my being is an infinite well of love.\nI prosper wherever I turn.\nWhatever I need to know is revealed to me at exactly the right time.\nI am loved, and I am at peace.\nMy happy thoughts help create my healthy body.\nLife supports me in every possible way.\nMy day begins and ends with gratitude.\nThe past is over.\nOnly good can come to me.\nI am beautiful, and everybody loves me.\nEveryone I encounter today has my best interests at heart.\nI always work with and for wonderful people. I love my job.\nI am healthy, whole, and complete.\n\nUser: Write a positive affirmation, similar to the message examples provided above by the System.\nChatbot:",
+        "max_tokens": 50,
+        "temperature": 0.5
+        }' | python3 -c 'import json,sys;obj=json.load(sys.stdin);print(obj["choices"][0]["text"].strip());')
+
+fi
+
+echo $msg
+
+# need to try both of these because if the first one doesn't work then the second one will and vice versa, depends on generation.
+defaults write /Library/Preferences/com.apple.loginwindow LoginwindowText "${msg}" || defaults write /Library/Preferences/com.apple.loginwindow LoginwindowText "'${msg}'"
